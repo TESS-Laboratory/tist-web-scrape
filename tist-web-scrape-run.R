@@ -16,7 +16,7 @@ source("R/tist-web-scrape-functions.R")
 source("R/build_tables.R")
 
 # --- This is the pipeline for Uganda ---
-# first get the url links for all projects in a country
+# first get the url links for all projects in the specified country
 ug_proj_urls <- project_urls("uganda")
 # then get the links to all the clusters in each of those projects
 ug_cluster_urls <- cluster_urls(ug_proj_urls)
