@@ -33,11 +33,17 @@ build_info_tab <- function(ginfo, country, group_url) {
 #' @param x A character vector with degrees, minutes, and seconds
 #' @return A numeric vector with decimal degrees
 process_coords <- function(x) {
-  x |>
+  coord <- x |>
     stringr::str_replace_all("[A-Za-z]", "") |>
     stringr::str_trim() |>
     measurements::conv_unit(from = "deg_dec_min", to = "dec_deg") |>
     as.numeric()
+
+  purrr::map2_dbl(
+    coord,
+    stringr::str_detect(x, "[WwSs]"),
+    ~ if_else(.y, -.x, .x)
+  )
 }
 
 #' Tidy up an html table from a group page on TIST
@@ -66,6 +72,11 @@ html_tab_tidy <- function(x) {
       ),
       dplyr::across(
         dplyr::any_of("date"), lubridate::dmy
+      ),
+      dplyr::across(
+        dplyr::any_of("name"),
+        # function ro replace double space with singel space
+        ~ stringr::str_replace_all(., "  ", " ")
       )
     ))
 }
@@ -75,6 +86,7 @@ html_tab_tidy <- function(x) {
 #' @param group_info A tibble with group information
 #' @return A tibble with grove information
 build_grove_tab <- function(ginfo, group_info) {
+  # browser()
   df <- html_tab_tidy(ginfo)
 
   suppressWarnings({
@@ -90,7 +102,8 @@ build_grove_tab <- function(ginfo, group_info) {
   })
 
   dplyr::cross_join(df, group_info) |>
-    dplyr::relocate(colnames(df[0]), .after = dplyr::last_col())
+    dplyr::relocate(colnames(df[0]), .after = dplyr::last_col()) |>
+    dplyr::mutate(name = make.unique(name))
 }
 
 #' General function to clean a table and join it to the info
@@ -110,6 +123,7 @@ build_tab_general <- function(ginfo, group_info) {
 #' tree_det_tab, and tree_circ_tab.
 get_group_tables <- function(g_url, country) {
   x <- insis_read_html(g_url)
+
   elements <- x |>
     rvest::html_elements("table") |>
     rvest::html_elements("table") |>
@@ -130,13 +144,24 @@ get_group_tables <- function(g_url, country) {
 
   grove_tab <- build_grove_tab(el_tabs[[3]], group_info = info_tab)
 
+  gu <- grove_poly_urls(elements[3]) |>
+    dplyr::bind_rows() |>
+    dplyr::mutate(name = make.unique(
+      stringr::str_replace_all(name, "  ", " ")
+    ))
+
+  # browser()
+  grove_tab_poly <- sf::st_drop_geometry(grove_tab) |>
+    dplyr::left_join(gu, by = "name") |> # multiple = "first"
+    sf::st_as_sf()
+
   seed_det_tab <- build_tab_general(el_tabs[[4]], group_info = info_tab)
 
   tree_det_tab <- build_tab_general(el_tabs[[6]], group_info = info_tab)
 
   tree_circ_tab <- build_tab_general(el_tabs[[7]], group_info = info_tab)
 
-  return(list(grove_tab, seed_det_tab, tree_det_tab, tree_circ_tab))
+  return(list(grove_tab, grove_tab_poly, seed_det_tab, tree_det_tab, tree_circ_tab))
 }
 
 #' Get all the tables from a list of group URLs
@@ -195,4 +220,76 @@ save_group_tabs <- function(
     tree_det = file.path(parent_dir, glue::glue(tree_det_filename)),
     tree_circ = file.path(parent_dir, glue::glue(tree_circ_filename))
   ))
+}
+
+
+#' function to retrieve the polygon of a grove from the TIST website
+#' @param grove_url the url of the grove
+#' @return a simple feature (sf) of the polygon
+get_grove_polygon <- function(grove_url, grove_name) {
+  map_html <- rvest::read_html(grove_url)
+  script_node <- map_html |>
+    rvest::html_elements(xpath = "/html/head/script[2]") |>
+    rvest::html_text2() |>
+    # with stringr get text after the pattern "polyline.getPath();"
+    stringr::str_extract("(?<=polyline.getPath\\(\\);)(.*)") |>
+    # now extract vlues contained between the LatLng and ;
+    stringr::str_extract_all("(?<=LatLng\\()(.*?)(?=;)") |>
+    unlist() |>
+    stringr::str_replace_all("\\)", "")
+
+  coords <- script_node |>
+    stringr::str_split(",") |>
+    unlist() |>
+    as.numeric() |>
+    matrix(ncol = 2, byrow = TRUE)
+
+
+  poly <- wk::wk_handle(
+    wk::xy(x = coords[, 2], y = coords[, 1]),
+    wk::wk_polygon_filter(
+      wk::sfc_writer()
+    )
+  ) |>
+    sf::st_as_sf(crs = "EPSG:4326") |>
+    sf::st_make_valid()
+
+  sf::st_geometry(poly) <- "geometry"
+  poly$name <- grove_name
+  return(poly)
+}
+
+grove_poly_urls <- function(ns) {
+  x <- ns |>
+    rvest::html_elements("p") |>
+    rvest::html_elements("a")
+
+  links <- x |>
+    rvest::html_attr("href")
+
+  if (length(links) == 0) {
+    return(
+      tibble::tibble(name = character(), geometry = sf::st_sfc()) |>
+        sf::st_as_sf() |>
+        sf::st_set_crs(4326)
+    )
+  }
+
+  paste_base_url(links) |>
+    purrr::map(get_gmap_url) |>
+    paste_base_url(sep = "bin/") |>
+    purrr::set_names(rvest::html_text2(x)) |>
+    purrr::imap(~ get_grove_polygon(.x, .y))
+}
+
+
+get_gmap_url <- function(img_link) {
+  poly_img_page <- insis_read_html(img_link)
+
+  poly_img_page |>
+    # get the body
+    rvest::html_elements("table") |>
+    rvest::html_elements("span") |>
+    rvest::html_elements("a") |>
+    rvest::html_attr("href")
 }
