@@ -16,7 +16,9 @@ Then install the packages that are loaded at the top of
 [`tist-web-scrape-run.R`](tist-web-scrape-run.R). 
 Then, run the script [`tist-web-scrape-run.R`](tist-web-scrape-run.R) which 
 should download 4 files: 
-- *uganda_grove_tab.gpkg* - a spatial vector file containing the centroid 
+- *uganda_grove_points.gpkg* - a spatial vector file containing the centroid 
+location and information about each grove.
+- *uganda_grove_polys.gpkg* - a spatial vector file containing the polygon
 location and information about each grove.
 - *uganda_seed_det_tab.csv* - a table containing information about the seedlings
 - *uganda_tree_det_tab.csv* - a table containing information about the trees e.g. age and number present.
