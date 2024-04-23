@@ -103,3 +103,8 @@ group_urls <- function(
 insis_read_html <- purrr::insistently(function(x) {
   rvest::read_html(x)
 })
+
+
+paste_base_url <- function(x, base_url = "https://www.tist.org/i2/", sep = "/") {
+  paste(base_url, x, sep = sep)
+}
