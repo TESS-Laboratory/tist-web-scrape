@@ -150,9 +150,8 @@ get_group_tables <- function(g_url, country) {
       stringr::str_replace_all(name, "  ", " ")
     ))
 
-  # browser()
   grove_tab_poly <- sf::st_drop_geometry(grove_tab) |>
-    dplyr::left_join(gu, by = "name") |> # multiple = "first"
+    dplyr::left_join(gu, by = "name") |>
     sf::st_as_sf()
 
   seed_det_tab <- build_tab_general(el_tabs[[4]], group_info = info_tab)
@@ -161,7 +160,10 @@ get_group_tables <- function(g_url, country) {
 
   tree_circ_tab <- build_tab_general(el_tabs[[7]], group_info = info_tab)
 
-  return(list(grove_tab, grove_tab_poly, seed_det_tab, tree_det_tab, tree_circ_tab))
+  return(list(
+    grove_tab, grove_tab_poly,
+    seed_det_tab, tree_det_tab, tree_circ_tab
+  ))
 }
 
 #' Get all the tables from a list of group URLs
@@ -178,49 +180,6 @@ get_all_group_tabs <- function(group_urls_vec) {
   return(df_list)
 }
 
-#' Save the group tables to disk
-#' @param group_tab_list A list of tibbles with group information from
-#' `get_all_group_tabs()`
-#' @param country The country of the group
-#' @param parent_dir The parent directory to save the files to
-#' @param grove_filename The filename for the grove table
-#' @param seed_det_filename The filename for the seed detail table
-#' @param tree_det_filename The filename for the tree detail table
-#' @param tree_circ_filename The filename for the tree circumference table
-#' @return A list with the file paths for the saved tables
-save_group_tabs <- function(
-    group_tab_list,
-    country = attributes(group_tab_list)$country,
-    parent_dir = "TIST-data",
-    grove_filename = "{country}_grove_tab.gpkg",
-    seed_det_filename = "{country}_seed_det_tab.csv",
-    tree_det_filename = "{country}_tree_det_tab.csv",
-    tree_circ_filename = "{country}_tree_circ_tab.csv") {
-  if (!dir.exists(parent_dir)) {
-    dir.create(parent_dir)
-  }
-
-  sf::write_sf(
-    group_tab_list[[1]],
-    file.path(parent_dir, glue::glue(grove_filename)),
-    delete_dsn = TRUE
-  )
-
-  purrr::walk2(
-    group_tab_list[2:4],
-    c(seed_det_filename, tree_det_filename, tree_circ_filename),
-    ~ vroom::vroom_write(
-      .x,
-      file.path(parent_dir, glue::glue(.y))
-    )
-  )
-  return(list(
-    grove = file.path(parent_dir, glue::glue(grove_filename)),
-    seed_det = file.path(parent_dir, glue::glue(seed_det_filename)),
-    tree_det = file.path(parent_dir, glue::glue(tree_det_filename)),
-    tree_circ = file.path(parent_dir, glue::glue(tree_circ_filename))
-  ))
-}
 
 
 #' function to retrieve the polygon of a grove from the TIST website
