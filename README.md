@@ -4,11 +4,11 @@
 This is a workflow for scraping the data from the TIST website 
 (https://www.tist.org/i2/). 
 
-it provides a workflow for Uganda which should easily generalise to the other
-countries. 
+It provides a workflow for Uganda which should easily generalise to the other
+countries. (note that users should consider the ethical implications of research practice including Web scraping before implementation, and consider whether a formal ethical review might be needed).
 
 So far, checks on the data quality and completeness are limited but it appears
-to be working well. It is strongly recommended that further checks are made on
+to be working well. It is strongly recommended that users make further checks on
 the data before using it for any analysis.
 
 To run the workflow, either clone or download it from GitHub. 
