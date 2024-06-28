@@ -42,7 +42,7 @@ process_coords <- function(x) {
   purrr::map2_dbl(
     coord,
     stringr::str_detect(x, "[WwSs]"),
-    ~ if_else(.y, -.x, .x)
+    ~ dplyr::if_else(.y, -.x, .x)
   )
 }
 
