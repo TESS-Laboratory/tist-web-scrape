@@ -51,14 +51,11 @@ list(
     ),
     tar_target(
       combined_group_tabs,
-      command = {
-        purrr::transpose(group_tabs) |>
-          purrr::map(dplyr::bind_rows)
-      }
+      collect_group_tabs(group_tabs, countries)
     ),
     tar_target(
       save_tabs,
-      save_group_tabs(combined_group_tabs)
+      save_group_tabs(combined_group_tabs, countries)
     )
   )
 )
