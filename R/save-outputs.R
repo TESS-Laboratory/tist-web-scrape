@@ -42,7 +42,9 @@ save_group_tabs <- function(
     )
   )
 
-  zip_file <- file.path(parent_dir, "TIST_data_{country}.zip")
+  zip_file <- file.path(
+    dirname(parent_dir), glue::glue("TIST_data_{country}.zip")
+  )
 
   utils::zip(
     zipfile = zip_file,
@@ -54,8 +56,7 @@ save_group_tabs <- function(
     grove_polys = file.path(parent_dir, glue::glue(grove_poly_filename)),
     seed_det = file.path(parent_dir, glue::glue(seed_det_filename)),
     tree_det = file.path(parent_dir, glue::glue(tree_det_filename)),
-    tree_circ = file.path(parent_dir, glue::glue(tree_circ_filename),
-      zip_file = zip_file
-    )
+    tree_circ = file.path(parent_dir, glue::glue(tree_circ_filename)),
+    zip_file = zip_file
   ))
 }
