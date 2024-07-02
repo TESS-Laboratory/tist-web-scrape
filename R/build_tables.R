@@ -42,7 +42,7 @@ process_coords <- function(x) {
   purrr::map2_dbl(
     coord,
     stringr::str_detect(x, "[WwSs]"),
-    ~ if_else(.y, -.x, .x)
+    ~ dplyr::if_else(.y, -.x, .x)
   )
 }
 
@@ -173,11 +173,24 @@ get_group_tables <- function(g_url, country) {
 #' tree_det_tab, and tree_circ_tab.
 get_all_group_tabs <- function(group_urls_vec) {
   country <- attr(group_urls_vec, "country")
-  df_list <- purrr::map(group_urls_vec, get_group_tables, country, .progress = TRUE) |>
-    purrr::transpose() |>
+  df_list <- purrr::map(group_urls_vec, get_group_tables,
+    country,
+    .progress = TRUE
+  )
+  collect_group_tabs(df_list)
+}
+
+
+#' Combine the list of group tables
+#' @param group_tabs A list of tibbles with group information
+#' @return a list of sf objects and tibbles with group information
+collect_group_tabs <- function(
+    group_tabs,
+    country = attr(group_tabs, "country")) {
+  cgt <- purrr::transpose(group_tabs) |>
     purrr::map(dplyr::bind_rows)
-  attr(df_list, "country") <- country
-  return(df_list)
+  attr(cgt, "country") <- country
+  return(cgt)
 }
 
 

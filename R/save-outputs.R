@@ -11,14 +11,15 @@
 save_group_tabs <- function(
     group_tab_list,
     country = attributes(group_tab_list)$country,
-    parent_dir = "TIST-data",
+    parent_dir = "TIST-data/{country}",
     grove_point_filename = "{country}_grove_points.gpkg",
     grove_poly_filename = "{country}_grove_polys.gpkg",
     seed_det_filename = "{country}_seed_det_tab.csv",
     tree_det_filename = "{country}_tree_det_tab.csv",
     tree_circ_filename = "{country}_tree_circ_tab.csv") {
+  parent_dir <- glue::glue(parent_dir)
   if (!dir.exists(parent_dir)) {
-    dir.create(parent_dir)
+    dir.create(parent_dir, recursive = TRUE)
   }
 
   gpkg_writer <- function(x, y) {
@@ -40,11 +41,22 @@ save_group_tabs <- function(
       file.path(parent_dir, glue::glue(.y))
     )
   )
+
+  zip_file <- file.path(
+    dirname(parent_dir), glue::glue("TIST_data_{country}.zip")
+  )
+
+  utils::zip(
+    zipfile = zip_file,
+    files = list.files(parent_dir, full.names = TRUE)
+  )
+
   return(list(
     grove_points = file.path(parent_dir, glue::glue(grove_point_filename)),
     grove_polys = file.path(parent_dir, glue::glue(grove_poly_filename)),
     seed_det = file.path(parent_dir, glue::glue(seed_det_filename)),
     tree_det = file.path(parent_dir, glue::glue(tree_det_filename)),
-    tree_circ = file.path(parent_dir, glue::glue(tree_circ_filename))
+    tree_circ = file.path(parent_dir, glue::glue(tree_circ_filename)),
+    zip_file = zip_file
   ))
 }
