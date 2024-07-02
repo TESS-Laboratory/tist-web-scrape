@@ -4,6 +4,7 @@
 This is a workflow for scraping the data from the TIST website 
 (https://www.tist.org/i2/). 
 
+
 This {targets} workflow downloads all TIST data (available from their website) for the following countries: 
 Uganda, Kenya, Tanzania and India.
 
@@ -17,8 +18,9 @@ This will install the required environment using {renv} and initiate the workflo
 For an example of data extraction for a single country, see the script
 [scripts/tist-web-scrape-run.R](scripts/tist-web-scrape-run.R)
 
+
 So far, checks on the data quality and completeness are limited but it appears
-to be working well. It is strongly recommended that further checks are made on
+to be working well. It is strongly recommended that users make further checks on
 the data before using it for any analysis.
 
 for each country the following files should be downloaded:
@@ -36,3 +38,4 @@ location and information about each grove.
 add target to upload the resulting files to GitHub using the piggyback package. 
 This will allow semi-continuous integration - whenever the pipeline is run, 
 the results will be uploaded to GitHub with the latest results.
+
