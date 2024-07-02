@@ -39,3 +39,4 @@ add target to upload the resulting files to GitHub using the piggyback package.
 This will allow semi-continuous integration - whenever the pipeline is run, 
 the results will be uploaded to GitHub with the latest results.
 
+The geospatial data is mostly pretty good but some of the groves are messy with large errors. A focused effort is needed to develop a QAQC script to automate assessing, correcting, and flagging for manual inspection and filtering out dodgy geometries...
