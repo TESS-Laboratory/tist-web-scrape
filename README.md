@@ -15,10 +15,6 @@ make
 ```
 This will install the required environment using {renv} and initiate the workflow, running it in a seperate process that will continue running, even if you disconnect from your current session. This is especially important if you are working on a remote machine.
 
-For an example of data extraction for a single country, see the script
-[scripts/tist-web-scrape-run.R](scripts/tist-web-scrape-run.R)
-
-
 So far, checks on the data quality and completeness are limited but it appears
 to be working well. It is strongly recommended that users make further checks on
 the data before using it for any analysis.
